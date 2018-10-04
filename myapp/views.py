@@ -10,6 +10,14 @@ from django.urls import reverse
 from myapp.models import Document
 from myapp.forms import DocumentForm
 
+import matplotlib
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.figure import Figure
+from matplotlib.dates import DateFormatter
+
+import datetime
+import random
+
 
 def show(request):
     # Handle file upload
@@ -26,6 +34,8 @@ def show(request):
     data = process_document(Document.objects.last())
     text = " | ".join([", ".join(row) for row in data])
 
+    plot(request)
+
     return render(request, 'show.html', {'text': text, 'form': form, 'graphic': ""})
 
 def process_document(doc):
@@ -36,3 +46,26 @@ def process_document(doc):
             data.append(row)
 
     return data
+
+def plot(request):
+    # dummy data
+    fig = Figure()
+
+    ax=fig.add_subplot(111)
+    x=[]
+    y=[]
+    now=datetime.datetime.now()
+    delta=datetime.timedelta(days=1)
+    for i in range(10):
+        x.append(now)
+        now+=delta
+        y.append(random.randint(0, 1000))
+    ax.plot_date(x, y, '-')
+    ax.xaxis.set_major_formatter(DateFormatter('%Y-%m-%d'))
+    fig.autofmt_xdate()
+
+    canvas = FigureCanvas(fig)
+    response = HttpResponse(content_type='image/png')
+
+    canvas.print_png(response)
+    return response
