@@ -1,0 +1,31 @@
+from django.shortcuts import render
+
+from django.template import RequestContext
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+
+from myapp.models import Document
+from myapp.forms import DocumentForm
+
+
+def list(request):
+    # Handle file upload
+    if request.method == 'POST':
+        form = DocumentForm(request.POST, request.FILES)
+        if form.is_valid():
+            newdoc = Document(docfile = request.FILES['docfile'])
+            newdoc.save()
+
+            return HttpResponseRedirect(reverse('show'))
+    else:
+        form = DocumentForm() # A empty, unbound form
+
+
+    return render(request, 'show.html', {'text': text, 'form': form})
+
+def process_document(doc):
+    text = ""
+    with open(doc, 'r') as fh:
+        text = [line for line in fh].join()
+
+    return text
